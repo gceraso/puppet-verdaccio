@@ -20,24 +20,26 @@
 # Sample Usage:
 #
 class verdaccio (
-  $install_root              = '/opt',
-  $install_dir               = 'verdaccio',
-  $version                   = undef,    # latest
-  $daemon_user               = 'verdaccio',
-  $package_name              = 'verdaccio',
-  $conf_listen_to_address    = '0.0.0.0',
-  $conf_port                 = '4783',
+  $install_root               = '/opt',
+  $install_dir                = 'verdaccio',
+  $install_path               = "${install_root}/${install_dir}",
+  $bin_location               = "${install_path}/node_modules/verdaccio/bin/verdaccio",
+  $version                    = undef,    # latest
+  $daemon_user                = 'verdaccio',
+  $package_name               = 'verdaccio',
+  $conf_listen_to_address     = '0.0.0.0',
+  $conf_port                  = '4783',
   $conf_admin_pw_hash,
-  $conf_user_pw_combinations = undef,
-  $http_proxy                = '',
-  $https_proxy               = '',
-  $conf_template             = 'verdaccio/config.yaml.erb',
-  $service_template          = 'verdaccio/service.erb',
-  $conf_max_body_size        = '1mb',
-  $conf_max_age_in_sec       = '86400',
-  $install_as_service        = true,) {
+  $conf_user_pw_combinations  = undef,
+  $http_proxy                 = '',
+  $https_proxy                = '',
+  $conf_template              = 'verdaccio/config.yaml.erb',
+  $service_template           = 'verdaccio/service.erb',
+  $conf_max_body_size         = '1mb',
+  $conf_max_age_in_sec        = '86400',
+  $install_as_service         = true,
+) {
   require nodejs
-  $install_path = "${install_root}/${install_dir}"
 
   group { $daemon_user:
     ensure => present,
@@ -100,9 +102,9 @@ class verdaccio (
   }
 
   if $install_as_service {
-    $init_file = '/etc/init.d/verdaccio'
+    $service_file = '/lib/systemd/system/verdaccio.service'
 
-    file { $init_file:
+    file { $service_file:
       content => template($service_template),
       mode    => '0755',
       notify  => $service_notify,
@@ -114,7 +116,7 @@ class verdaccio (
       hasstatus => true,
       restart   => true,
       require   => File[
-        $init_file,
+        $service_file,
         "${install_path}/config.yaml",
         "${install_path}/daemon.log"
       ]
